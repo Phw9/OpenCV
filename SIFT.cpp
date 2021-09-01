@@ -52,7 +52,7 @@ int main(int argc, char** argv)
     double start = timer();
 
     // match and draw
-    vector< vector<DMatch> > rawMatches;
+    vector< vector<DMatch> > rawMatches; // 매칭결과벡터
     vector<Point2f> p1, p2; // p1 = img1의 질의 기술자 index, p2 = img2의 훈련 기술자 index
     vector<float> distances;
     matcher->knnMatch(desc1, desc2, rawMatches, 2); // Flannbased라서 knn 매칭을 적용해봄
