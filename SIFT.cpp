@@ -57,5 +57,16 @@ int main(int argc, char** argv)
     vector<float> distances;
     matcher->knnMatch(desc1, desc2, rawMatches, 2); // Flannbased라서 knn 매칭을 적용해봄
 
+    // filter_matches
+    for (size_t i = 0; i < rawMatches.size(); i++)
+    {
+        const vector<DMatch>& m = rawMatches[i];
+        if (m.size() == 2 && m[0].distance < m[1].distance * 0.75)
+        {
+            p1.push_back(keypoints1[m[0].queryIdx].pt);
+            p2.push_back(keypoints2[m[0].trainIdx].pt);
+            distances.push_back(m[0].distance);
+        }
+    }
     return 0;
 }
