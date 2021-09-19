@@ -10,7 +10,7 @@ using namespace std;
 using namespace cv;
 
 
-int main(){
+int main() {
 
     Mat img1 = imread("book.jpg", IMREAD_GRAYSCALE);
     Mat img2 = imread("book_in_scene.jpg", IMREAD_GRAYSCALE);
@@ -50,7 +50,7 @@ int main(){
     Mat dst;
     drawMatches(img1, keypoints1, img2, keypoints2, good_matches, dst,
         Scalar::all(-1), Scalar::all(-1), vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
- 
+
     //good_matches 매칭 결과에 저장된 query,train IDX를 pts1,pts2에 저장
     vector<Point2f> pts1, pts2;
     for (size_t i = 0; i < good_matches.size(); i++) {
@@ -59,7 +59,7 @@ int main(){
     }
     // pts1이 pts2로 이동하는 호모그래피 행렬을 구해 H에 저장
     // RANdom SAmple Consunsus 알고리즘을 이용
-    Mat H = findHomography(pts1, pts2, RANSAC); 
+    Mat H = findHomography(pts1, pts2, RANSAC);
 
 
     // img1 영상의 네 모서리 점을 corners1에 저장 후 호모그래피 행렬을 이용해
@@ -80,8 +80,8 @@ int main(){
 
     polylines(dst, corners_dst, true, Scalar(255, 0, 0), 1, LINE_AA);
 
+    namedWindow("dst", WINDOW_NORMAL);
     imshow("dst", dst);
-
     waitKey();
     destroyAllWindows();
 
