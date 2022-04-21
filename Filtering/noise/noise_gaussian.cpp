@@ -15,7 +15,10 @@ void noise_gaussian() {
 
 	imshow("src", src);
 
+	// standard deviation 값은 커질수록 잡음이 더 심해짐
 	for (int stddev = 10; stddev <= 30; stddev += 10) {
+		
+		// noise는 부호 있는 정수형(CV_32SC1)을 사용
 		Mat noise(src.size(), CV_32SC1);
 		randn(noise, 0, stddev);
 
