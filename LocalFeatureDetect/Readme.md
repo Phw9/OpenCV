@@ -49,7 +49,7 @@ SIFT 알고리즘은 영상의 크기, 회전 등의 변환뿐만 아니라 촬�
 2008년에 발표된 SURF(Speed-Up Robust Features) 알고리즘은 SIFT에서 사용한 `DoG 영상을 단순한 이진 패턴으로 근사화하여 속도를 향상`시켰다⑴.
 
 
-ref)
+ef)
 
 ⑴ H. Bay, A. Ess, T. Tuytelaars, and L. V. Gool, “SURF: Speeded Up Robust Features,” Computer Vision and Image Understanding (CVIU), vol. 110, no. 3, pp. 346-359, 2008.
 
@@ -91,7 +91,7 @@ ORB 알고리즘에서는 기본적으로 `256개의 크기비교 픽셀 쌍을 
 ORB 외에도 BRISK, AKAZE, FREAK 등의 이진 기술자를 사용하는 특징점 알고리즘이 있다.
 
 
-ref)
+Ref)
 
 ⑴ E. Rublee et al., “Orb: an efficient alternative to sift or surf,” IEEE International Conference on Computer Vision (ICCV), pp. 2564-2571. 2011.
 
