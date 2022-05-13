@@ -107,12 +107,24 @@ Ref)
 
 OpenCV에서 제공하는 특징점 검출 알고리즘 구현 클래스 및 클래스를 이용해 영상에서 특징점을 검출하고 기술자를 구하는 방법에 대해 알아보자. 또한, OpenCV에서 제공하는 함수를 이용해 검출된 특징점을 화면에 출력하는 방법도 알아보자.
 
-특징점 검출 방법을 설명하기에 앞서 OpenCV에서 특징점 정보를 저장할 때 사용하는 keyPoint 클래스에 대해 알아본다. KeyPoint 클래스는 특징점 좌표뿐만 아니라 특징점 검출 시 고려한 주변 영역의 크기, 주된 방향(각도), 옥타브 정보 등을 멤버 변수로 가지고 있다. 이러한 정보는 특징점 주변 영역의 특징을 표현하는 기술자 계산시에도 사용된다. 일반적으로 KeyPoint 객체는 사용자가 직접 생성하지 않으며, 특징점 검출 클래스 내부에서 생성하여 사용자에게 반환한다.
+특징점 검출 방법을 설명하기에 앞서 OpenCV에서 `특징점 정보를 저장할 때 사용하는 keyPoint 클래스`에 대해 알아본다. KeyPoint 클래스는 `특징점 좌표뿐만 아니라 특징점 검출 시 고려한 주변 영역의 크기, 주된 방향(각도), 옥타브 정보 등을 멤버 변수`로 가지고 있다. 이러한 정보는 `특징점 주변 영역의 특징을 표현하는 기술자 계산시에도 사용`된다. 일반적으로 KeyPoint 객체는 사용자가 직접 생성하지 않으며, 특징점 검출 클래스 내부에서 생성하여 사용자에게 반환한다.
 
 
 ![캡처](https://user-images.githubusercontent.com/76188802/168267920-761d3561-b49b-4753-9cd3-8a89faadf4d5.PNG)
 
-위 그림과 같이 OpenCV에서 특징점 관련 클래스는 모두 Feature2D 클래스를 상속받아 만들어진다. Feature2D 클래스는 detect(), compute(), detectAndCompute()라는 이름의 가상 멤버 함수를 가지고 있으며, Feature2D 클래스를 상속받은 각각의 특징점 알고리즘 구현 클래스는 이들 멤버 함수 기능을 
+위 그림과 같이 OpenCV에서 특징점 관련 클래스는 모두 Feature2D 클래스를 상속받아 만들어진다. Feature2D 클래스는 detect(), compute(), detectAndCompute()라는 이름의 가상 멤버 함수를 가지고 있으며, Feature2D 클래스를 상속받은 각각의 특징점 알고리즘 구현 클래스는 이들 멤버 함수 기능을 실제로 구현하도록 설계되어 있다. `detect() 멤버 함수는 영상에서 KeyPoint를 검출하고, coumpute() 함수는 검출된 KeyPoint를 표현하는 기술자를 생성한다. detectAndCompute() 멤버 함수는 KeyPoint 검출과 descriptor 생성을 동시에 수행`한다.
+
+위 그림에서 Feature2D 클래스를 상속받아 만들어진 SIFT, SURF, FastFeatureDetector, BriefDescripotrExtractor, KAZE, ORB 등의 클래스는 실제 특징점 검출 및 기술 알고리즘을 구현한 클래스다. 가장 유명한 특징점 검출 알고리즘인 SIFT와 SURF는 각각 알고리즘과 동일한 이름의 클래스로 구현되어 있다. `SIFT와 SURF는 소스 코드는 공개되어 있지만 알고리즘 자체에 특허가 걸려있어서 상업적인 사용시에는 제약`이 있을 수 있다. `BriefDescriptorExtractor 클래스는 BRIEF 기술자 계산 방법이 구현된 클래스`다. SIFT, SURF, BriefDescriptorExtractor 클래스는 xfeatures2d 추가 모듈에 포함되어 있으며 cv::xfeatures2d 네임스페이스를 사용한다. 그러므로 이들 클래스는 OpenCV 소스 코드를 직접 빌드해야 사용할 수 있다. 반면에 cv 네임스페이스를 사용하고 있는 FastFeatureDetector, KAZE, ORB 등의 클래스는 OpenCV 기본 소스에 포함되어 있어서 쉽게 사용할 수 있다.
+
+
+위 그림에 나열된 `특징점 알고리즘 구현 클래스 중에는 특징점 검출만 지원하거나 기술자 생성만 지원하는 클래스도 있다.` 예를 들어 FastFeatureDetector 클래스는 FAST 코너 검출 방법을 클래스로 구현한 것이며, 이 클래스는 특징점을 검출하는 기능만 있다. 그러므로 FastFeatureDetector 객체에서 compute() 또는 detectAndCompute() 함수를 호출하면 에러가 발생한다. 반면에 BriefDescriptorExtractor 클래스는 다른 방법으로 구한 특징점 위치에서 BRIEF 이진 기술자를 구하는 기능만 제공한다. 그래서 BriefDescriptorExtractor 객체에서 detect() 또는 detectAndCompute() 함수를 호출하면 안된다. SIFT, KAZE, ORB처럼 특징점 검출과 기술을 함께 지원하는 알고리즘 클래스는 detect(), compute(), detecetAndCompute() 함수를 모두 사용할 수 있다.
+
+
+특징점 구현 알고리즘 클래스를 이용하려면 먼저 각 특징점 클래스 객체를 생성해야한다. 
+
+
+
+
 
 
 
