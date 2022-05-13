@@ -24,7 +24,7 @@
 ---
 
 
-##### SIFT
+#### SIFT
 
 SIFT는 크기 불변 특징 변환(Scale Invariant Feature Transform)의 약자이며, 2004년 캐나다의 브리티시 컬럼비아 대학교 로우(D. Lowe) 교수가 발표한 논문에 소개된 방법이다.
 
@@ -44,7 +44,7 @@ SIFT 알고리즘은 영상의 크기, 회전 등의 변환뿐만 아니라 촬�
 
 ---
 
-##### SURF
+#### SURF
 
 2008년에 발표된 SURF(Speed-Up Robust Features) 알고리즘은 SIFT에서 사용한 `DoG 영상을 단순한 이진 패턴으로 근사화하여 속도를 향상`시켰다.
 
@@ -53,7 +53,7 @@ ref) H. Bay, A. Ess, T. Tuytelaars, and L. V. Gool, “SURF: Speeded Up Robust F
 
 ---
 
-##### KAZE
+#### KAZE
 
 2012년에 발표된 KAZE 알고리즘은 `가우시안 함수 대신 비등방성 확산 필터(nonlinear diffusion filter)를 이용해 비선형 스케일 스페이스를 구축하여 특징점을 검출`한다. KAZE 알고리즘은 객체의 윤곽을 잘 보전함으로써 블러링, 크기 및 회전 변환, 잡음 등의 영향으로 변형된 영상에서 같은 특징점을 반복적으로 찾아내는 성능이 뛰어나다.
 
@@ -62,7 +62,7 @@ ref) H. Bay, A. Ess, T. Tuytelaars, and L. V. Gool, “SURF: Speeded Up Robust F
 
 ---
 
-##### ORB
+#### ORB
 
 SIFT, SURF, KAZE 방법은 스케일 스페이스를 구성하는 등 복잡한 연산을 수행해야 하기 때문에 실시간 응용에서 사용하기 어렵다는 단점이 있다. 또한, 이들 특징점 알고리즘에 의해 만들어지는 기술자는 128개 또는 64개의 실수 값으로 구성되어 있어서 메모리 사용량이 많고 특징점 사이의 거리 계산도 오래 걸릴 수 있다는 단점이 있다. 그래서 2010년 전후로는 특징점 검출이 매우 빠르고 이진수로 구성된 기술자를 사용하는 알고리즘이 발표되기 시작했다.
 
