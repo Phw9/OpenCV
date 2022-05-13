@@ -5,8 +5,8 @@
 
 예를 들어 크기가 확대되면 같은 크기의 사각형 안에서 코너보다는 에지에 가까운 형태로 관측 될 수 있다.
 
+![캡쳐]("https://user-images.githubusercontent.com/76188802/168241002-8aab3b37-6467-435c-887b-0c079422c521.PNG){: width="100%" height="100%"}
 
-<img src="https://user-images.githubusercontent.com/76188802/168241002-8aab3b37-6467-435c-887b-0c079422c521.PNG  width="200" height="400"/>
 
 
 
