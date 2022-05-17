@@ -293,7 +293,7 @@ return                : CV_64FC1 타입의 3x3 호모그래피 행렬을 반환.
 ![캡처](https://user-images.githubusercontent.com/76188802/168795287-ef5119d3-2774-40de-90f7-70c0cc2e554c.PNG)
 
 
-findHomography() 함수의 method 인자에 기본값인 0을 지정하면 입력 점과 출력 점을 모두 사용하는 최소자승법(leas squares)으로 행렬을 계산한다. 그러나 일반적으로 특징점 매칭 결과로부터 호모그래피를 계산할 때 최소자승법을 사용하면 호모그래피가 제대로 계산되지 않는다. 잘못 매칭된 점들처럼 오차가 큰 입력 정보를 이상치(outlier)라고 부르며, 이상치가 많이 존재하는 경우에는 호모그래피 계산 방법 method를 LMEDS, RANSAC, RHO 방법으로 설정하는 것이 좋다. LMEDS 메서드는 보통 이상치가 50% 이하인 경우에 올바르게 동작한다. RANSAC 또는 RHO 방법은 이상치가 50% 이상 존재하더라도 호모그래피 행렬을 잘 찾아 주는 편이다. RANSAC과 RHO 방법을 사용할 경우엔 srcPoints와 dstPoints에 저장된 점이 이상치가 아니라고 판단하기 위한 임계값을 설정해야 하며, 이 값은 ransacReprojThreshold 인자로 지정한다. 만약 *H x srcPoints(i)* 와 *dstPoints(i)* 사이의 거리가 ransacReprojThreshold보다 작으면 정상치(inlier)로 간주한다.
+findHomography() 함수의 method 인자에 기본값인 0을 지정하면 입력 점과 출력 점을 모두 사용하는 최소자승법(leas squares)으로 행렬을 계산한다. 그러나 일반적으로 특징점 매칭 결과로부터 호모그래피를 계산할 때 최소자승법을 사용하면 호모그래피가 제대로 계산되지 않는다. `잘못 매칭된 점들처럼 오차가 큰 입력 정보를 이상치(outlier)`라고 부르며, 이상치가 많이 존재하는 경우에는 호모그래피 계산 방법 method를 LMEDS, RANSAC, RHO 방법으로 설정하는 것이 좋다. LMEDS 메서드는 보통 이상치가 50% 이하인 경우에 올바르게 동작한다. RANSAC 또는 RHO 방법은 이상치가 50% 이상 존재하더라도 호모그래피 행렬을 잘 찾아 주는 편이다. RANSAC과 RHO 방법을 사용할 경우엔 srcPoints와 dstPoints에 저장된 점이 이상치가 아니라고 판단하기 위한 임계값을 설정해야 하며, 이 값은 ransacReprojThreshold 인자로 지정한다. 만약 `*H x srcPoints(i)* 와 *dstPoints(i)* 사이의 거리가 ransacReprojThreshold보다 작으면 정상치(inlier)로 간주`한다.
 
 ###### RANSAC
 
