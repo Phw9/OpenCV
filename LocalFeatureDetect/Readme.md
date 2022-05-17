@@ -38,7 +38,7 @@ SIFT는 크기 불변 특징 변환(Scale Invariant Feature Transform)의 약자
 
 SIFT 알고리즘은 DoG 영상 집합에서 `인접한 DoG 영상을 고려한 지역 극값 위치를 특징점으로 사용하며, 이후 에지 성분이 강하거나 명암비가 낮은 지점은 특징점에서 제외`한다.
 
-SIFT 알고리즘은 특징점을 검출하는 기능뿐만 아니라 `특징점 주변의 픽셀 값을 이용한 기술자(dscriptor)계산 방법`도 포함한다.
+SIFT 알고리즘은 특징점을 검출하는 기능뿐만 아니라 `특징점 주변의 픽셀 값을 이용한 기술자(descriptor)계산 방법`도 포함한다.
 `특징점 기술자는 특징점 주변 영상의 특성을 여러 개의 실수 값으로 표현한 것을 의미하며, 특징 벡터(feature vector)`라고도 한다. 서로 같은 특징점에서 추출된 기술자는 실수 값 구성이 서로 일치한다. SIFT는 기본적으로 특징점 부근의 부분 영상으로부터 `그래디언트 방향 히스토그램을 추출해 기술자로 사용`한다. 특징점 근방으로부터 특징점의 주된 방향 성분을 계산하고, 이 방향 만큼 회전한 부분 영상으로부터 128개의 빈(bin)으로 구성된 그래디언트 방향 히스토그램을 계산한다. 각각의 빈 값은 float 자료형을 사용하며, 하나의 SIFT 특징점은 512byte 크기의 기술자로 표현된다.
 
 SIFT 알고리즘은 영상의 크기, 회전 등의 변환뿐만 아니라 촬영 시점 변화에도 충분히 강인하게 동착하며, 잡음의 영향과 조명 변화가 있어도 특징점을 반복적으로 잘 찾아낸다. SIFT 알고리즘은 다양한 컴퓨터 비전 분야에서 적용되었고 특히 객체 인식, 파노라마 영상 이어붙이기, 3차원 장면 인식 등의 분야에서 효과적으로 사용됐다.
@@ -120,9 +120,33 @@ OpenCV에서 제공하는 특징점 검출 알고리즘 구현 클래스 및 클
 위 그림에 나열된 `특징점 알고리즘 구현 클래스 중에는 특징점 검출만 지원하거나 기술자 생성만 지원하는 클래스도 있다.` 예를 들어 FastFeatureDetector 클래스는 FAST 코너 검출 방법을 클래스로 구현한 것이며, 이 클래스는 특징점을 검출하는 기능만 있다. 그러므로 FastFeatureDetector 객체에서 compute() 또는 detectAndCompute() 함수를 호출하면 에러가 발생한다. 반면에 BriefDescriptorExtractor 클래스는 다른 방법으로 구한 특징점 위치에서 BRIEF 이진 기술자를 구하는 기능만 제공한다. 그래서 BriefDescriptorExtractor 객체에서 detect() 또는 detectAndCompute() 함수를 호출하면 안된다. SIFT, KAZE, ORB처럼 특징점 검출과 기술을 함께 지원하는 알고리즘 클래스는 detect(), compute(), detecetAndCompute() 함수를 모두 사용할 수 있다.
 
 
-특징점 구현 알고리즘 클래스를 이용하려면 먼저 각 특징점 클래스 객체를 생성해야한다. 
+특징점 구현 알고리즘 클래스를 이용하려면 먼저 각 특징점 클래스 객체를 생성해야한다. `Feature2D를 상속받아 만들어진 특징점 클래스들은 모두 create()라는 이름의 정적 멤버 함수를 가지고` 있으며, 각 특징점 클래스 객체는 해당 클래스의 `create() 멤버 함수를 이용하여 생성`해야 한다. `특징점 클래스마다 정의된 create() 정적 멤버 함수의 인자 구성은 각기 다르지만, 모든 인자에 기본값이 지정되어 있기 때문에 인자를 지정하지 않고도 사용`할 수 있다. (`각 특징점 클래스의 create() 멤버 함수에서 사용하는 인자 구성은 해당 알고리즘에 특화된 내용이 많다`. 그러므로 각각의 create() 함수에 대한 자세한 사항은 관련 논문과 OpenCV 사이트를 참고) 그리고 `각 특징점 클래스의 create() 멤버 함수는 해당 클래스 객체를 참조하는 스마트 포인터를 반환`함.
 
+```cpp
+/*
+예를 들어 ORB::create() 멤버 함수 원형은 다음과 같다.
+*/  
 
+static Ptr<ORB> ORB::create(int nfeatures = 500, float scaleFactor = 1.2f, int nlevels = 8, int edgeThreshold =31, int firstLevel = 0, int WTA_K = 2, ORB::ScoreType scoreType = ORB::HARRIS_SCORE, int patchSize = 31, int fastThreshold = 20);
+
+nfeatures     : 검출할 최대 특징 개수
+scaleFactor   : 피라미드 생성 비율(영상 축소 비율)
+nlevels       : 피라미드 단계 개수
+edgeThreshold : 특징을 검출하지 않을 영상 가장자리 픽셀 크기
+firstLevel    : 항상 0을 지정해야 한다.
+WTA_K         : BRIEF 기술자 계산시 사용할 점의 개수. 2, 3, 4 중 하나를 지정해야함.
+scoreType     : 특징점 점수 결정 방법. ORB::HARRIS_SCORE 또는 ORB::FAST_SCORE 둘 중 하나를 지정.
+patchSize     : BRIEF 기술자 계산시 사용할 패치 크기
+fastThreshold : FAST 코너 검출 방법에서 사용되는 임계값
+return        : ORB 객체를 참조하는 Ptr 스마트 포인터 객체
+
+Ptr<ORB> feature = ORB::create();       // ORB 클래스 객체 생성
+Ptr<Feature2D> feature = ORB::create(); // ORB 클래스가 Feature2D 클래스를 상속받아 만들어진 클래스이기 때문에 이렇게도 가능
+Ptr<Feature2D> feature = KAZE::create();// KAZE 특징점 검출 방법을 사용하기 위한 KAZE 클래스 객체 생성
+
+```
+
+- [키포인트 검출 예제]()
 
 
 
