@@ -13,7 +13,7 @@
 - [특징점 매칭](#특징점-매칭)
   - [OpenCV 특징점 매칭](#OpenCV-특징점-매칭)
   - [호모그래피와 영상 매칭](#호모그래피와-영상-매칭)
-
+    - RANSAC(#RANSAC)
 
 ---
 
@@ -248,10 +248,59 @@ DMatch 클래스는 기술자 사이의 거리를 표현하는 distance를 멤�
 - [좋은 매칭 선별 예제](https://github.com/Phw9/OpenCV/blob/master/LocalFeatureDetect/detect/good_matching.cpp)
 
 
+---
+
 
 #### 호모그래피와 영상 매칭
 
-특징점 매칭 결과로부터 두 영상의 호모그래피(homography)를 계산하고, 이를 이용하여 크기가 다르고 회전이 되어 있는 객체를 정확하게 매칭하는 방법에 대해 알아보자. `호모그래피는 3차원 공간상의 평면을 서로 다른 시점에서 바라봤을 때 획득되는 영상 사이의 관계`를 나타내는 용어다.
+특징점 매칭 결과로부터 두 영상의 호모그래피(homography)를 계산하고, 이를 이용하여 크기가 다르고 회전이 되어 있는 객체를 정확하게 매칭하는 방법에 대해 알아보자. `호모그래피는 3차원 공간상의 평면을 서로 다른 시점에서 바라봤을 때 획득되는 영상 사이의 관계`를 나타내는 용어다. 호모그래피는 수학적으로 하나의 평면을 다른 평면으로 투시 변환(perspective transform)하는 것과 같은 관계에 있다.
+
+![캡처](https://user-images.githubusercontent.com/76188802/168791605-aaa03ff9-7e47-4298-9a7c-3d252fcccf70.PNG)
+
+
+위 그림은 3차원 공간에서 평면과 획든된 영상과의 호모그래피 관계를 보여준다. 바닥에 놓인 평면 P를 v1 시점에서 바라본 영상I1과 v2 시점에서 바라본 영상 I2 사이의 관계를 호모그래피 H12로 표현한다. 또한 영상 I1과 평면 P 사이의 관계, 또는 영상 I2와 평면 P 사이의 관계도 각각 호모그래피 H1과 H2 형태로 표현할 수 있다. `실제적인 연산 관점에서 호모그래피는 투시 변환과 같기 때문에 호모그래피 3x3 실수 행렬로 표현`할 수 있다. 또한 투시 변환을 구할 떄와 마찬가지로 `네 개의 대응되는 점의 좌표 이동 정보가 있으면 호모그래피 행렬을 구할 수 있다. 그러나 특징점 매칭 정보로부터 호모그래피를 구하는 경우에는 서로 대응되는 점 개수가 네 개보다 훨씬 많기 때문에 이러한 경우에는 투시 변환 시 에러가 최소가 되는 형태의 호모그래피 행렬을 구해야 한다.`
+
+
+OpenCV는 두 영상 평면에서 추출된 특징점 매칭 정보로부터 호모그래피를 계산할 때 사용할 수 있는 findHomography() 함수를 제공한다. 함수 원형은 다음과 같다.
+```cpp
+cv::Mat findHomography(InputArray srcPoints, InputArray dstPoints, int method = 0, double ransacReprojThreshold =3,
+                       OutputArray mask = noArray(), const int maxIters = 2000, const double confidence = 0.995);
+
+srcPoints             : 원본 평면상의 점 좌표. CV_32FC2 타입의 Mat 객체 또는 vector<Point2f> 타입의 변수를 지정한다.
+dstPoints             : 목표 평면상의 점 좌표. CV_32FC2 타입의 Mat 객체 또는 vector<Point2f> 타입의 변수를 지정한다.
+method                : 호모그래피 행렬 계산 방법. 다음 방법중 하나를 지정한다.
+                        0       - 모든 점을 사용하는 일반적인 방법. 최소자승법
+                        LMEDS   - 최소 메디안 제곱(least-median of squares) 방법
+                        RANSAC  - RANSAC 방법
+                        RHO     - PROSAC 방법
+ransacReprojThreshold : 최대 허용 재투영 에러. 이 값 이내로 특징점이 재투영되는 경우에만 정상치로 간주한다. RANSAC과 RHO 방법에서만                           사용된다.
+mask                  : 호모그래피 계산에 사용된 점들을 알려 주는 출력 마스크 행렬. LMEDS와 RANSAC 방법에서만 사용된다.
+maxIters              : RANSAC 최대 반복 횟수
+confidence            : 신뢰도 레벨. 0에서 1 사이의 실수를 지정한다.
+return                : CV_64FC1 타입의 3x3 호모그래피 행렬을 반환. 만약 호모그래피를 계산할 수 없는 상황이라면 비어 있는 Mat 객체가                         반환
+
+```
+
+원본 평면상의 점 좌표를 (xi,yi)로 표현하고 목표 평면상의 점 좌표를 (x'i,y'i)로 표현할 경우, 호모그래피 H는 다음 수식을 최소화하는 형태의 행렬이다.
+
+
+![캡처](https://user-images.githubusercontent.com/76188802/168795097-00cd2ffe-3efc-4dab-93a5-4ed2b9b7d537.PNG)
+
+
+앞 수식에서 h(ij){1<=i,j<=3)는 호모그래피 행렬 H의 원소를 나타내고, 다음과 같은 관계를 만족시킨다.
+
+
+![캡처](https://user-images.githubusercontent.com/76188802/168795287-ef5119d3-2774-40de-90f7-70c0cc2e554c.PNG)
+
+
+findHomography() 함수의 method 인자에 기본값인 0을 지정하면 입력 점과 출력 점을 모두 사용하는 최소자승법(leas squares)으로 행렬을 계산한다. 그러나 일반적으로 특징점 매칭 결과로부터 호모그래피를 계산할 때 최소자승법을 사용하면 호모그래피가 제대로 계산되지 않는다. 잘못 매칭된 점들처럼 오차가 큰 입력 정보를 이상치(outlier)라고 부르며, 이상치가 많이 존재하는 경우에는 호모그래피 계산 방법 method를 LMEDS, RANSAC, RHO 방법으로 설정하는 것이 좋다. LMEDS 메서드는 보통 이상치가 50% 이하인 경우에 올바르게 동작한다. RANSAC 또는 RHO 방법은 이상치가 50% 이상 존재하더라도 호모그래피 행렬을 잘 찾아 주는 편이다. RANSAC과 RHO 방법을 사용할 경우엔 srcPoints와 dstPoints에 저장된 점이 이상치가 아니라고 판단하기 위한 임계값을 설정해야 하며, 이 값은 ransacReprojThreshold 인자로 지정한다. 만약 *H x srcPoints(i)* 와 *dstPoints(i)* 사이의 거리가 ransacReprojThreshold보다 작으면 정상치(inlier)로 간주한다.
+
+###### RANSAC
+
+
+
+
+
 
 
 
