@@ -10,6 +10,10 @@
 
 - [OpenCV 특징점 검출과 기술](#OpenCV-특징점-검출과-기술)
 
+- [특징점 매칭](#특징점-매칭)
+  - [OpenCV 특징점 매칭](#OpenCV-특징점-매칭)
+  - [호모그래피와 영상 매칭](#호모그래피와-영상-매칭)
+
 
 ---
 
@@ -149,8 +153,105 @@ Ptr<Feature2D> feature = KAZE::create();// KAZE 특징점 검출 방법을 사�
 - [키포인트 검출 예제](https://github.com/Phw9/OpenCV/tree/master/LocalFeatureDetect/detect)
 
 
+---
+
+## 특징점 매칭
+
+#### OpenCV 특징점 매칭
+
+특징점 매칭(matching)은 두 영상에서 추출한 특징점 기술자를 비교하여 서로 비슷한 특징점을 찾는 작업을 의미한다. 특히 크기 불변 특징점으로부터 구한 기술자를 매칭하면 그기와 회전에 강인한 영상 매칭을 수행할 수 있다.
+
+특징점을 매칭하는 방법을 설명하기 앞서 OpenCV에서 특징점 매칭 정보를 저장할 때 사용하는 DMatch 클래스에 대해 알아보자.
+```cpp
+//  간략화한 DMatch 클래스 정의
+class DMatch
+{
+public:
+    DMatch();
+    DMatch(int _queryIdx, int _trainIdx, float _distance);
+    DMatch(int _queryIdx, int _trainIdx, int _imgIdx, float _distance);
+    
+    int queryIdx;     //  질의 기술자 번호
+    int trainIdx;     //  훈련 기술자 번호
+    int imgIdx;       //  훈련 영상 번호. 여러 장의 영상을 훈련 영상으로 설정한 경우 사용됨
+    
+    flaot distance;   //  두 기술자 사이의 거리
+    
+    bool operator<(const DMatch &m) const;  //  DMatch 클래스에 대한 크기 비교 연산자 재정의이며, DMatch::distance 멤버 변수 값을                                             //  이용해 크기를 비교한다.
+};
+```
+distance 멤버 변수는 `두 키포인트 기술자가 얼마나 차이가 나는지를 나타내는 매칭 척도의 역할`을 한다. `두 특징점이 서로 유사하면 distance 값이 0에 가깝고, 서로 다른 특징점이면 distance 값이 크게` 나타난다. distance 계산 방식은 다차원 벡터의 유클리드 거리(Euclidean distance)로 주로 계산하며, 다만 이진 기술자끼리 비교하는 경우엔 해밍 거리를 사용한다. DMatch 클래스 객체는 보통 사용자가 직접 생성하지 않고, 특징점 매칭 알고리즘 내부에서 생성하여 사용자에게 반환한다.
 
 
+![캡처](https://user-images.githubusercontent.com/76188802/168753268-6719d1ad-d7d4-40bb-a27c-9b105ceaefdc.PNG)
+
+
+OpenCV에서 제공하는 특징점 매칭 클래스 상속 관계는 위와 같다. 특징점 매칭 클래스는 DescriptorMatcher 클래스를 상속받아 만들어진다. DescriptorMatcher 클래스는 match(), knnMatch(), radiusMatch() 등의 가상 멤버 함수를 가지고 있는 추상 클래스이며, DescriptorMatcher 클래스를 상속받은 BFMatcher 클래스와 FlannBasedMatcher 클래스는 이들 멤버 함수 기능을 실제로 구현하도록 설계되어 있다.
+match() 함수는 가장 비슷한 기술자 쌍을 하나 찾고, knnMatch() 함수는 비슷한 기술자 쌍 k개를 찾는다. radiusMatch() 함수는 지정한 거리 반경 안에 있는 기술자 쌍을 모두 찾아 반환한다.
+
+`BFMatcher 클래스는 전수 조사(Brute-Force) 매칭`을 수행한다. BFMatcher 클래스는 query 기술자 집합에 있는 모든 기술자와 train 기술자 집합에 있는 모든 기술자 사이의 거리를 계산하고, 이 중 `가장 거리가 작은 기술자를 찾아 매칭하는 방식`이다. BFMatcher 클래스의 `매칭 결정 방법은 매우 직관적이지만 특징점 개수가 늘어날수록 거리 계산 획수가 급격하게 늘어날 수 있다는 단점`이 있다. 예를 들어 첫 번째 영상에 1000개의 특징점이 있고, 두 번째 영상에 2000개의 특징점이 있다면 BFMatcher 방법은 총 2,000,000번의 비교 연산을 수행해야 한다. 그러므로 `특징점 개수가 늘어날수록 BFMatcher 방법에 의한 매칭 연산량은 크게 늘어나게 되며, 이러한 경우에는 BFMatcher 클래스 대신 FlannBasedMatcher 클래스를 사용하는 것이 효율적`이다.
+
+Flann(Fast Library approximate nearest neighbors)은 근사화된 최근방 이웃(ANN, Approixmate Nearest Neighbors) 알고리즘을 빠르게 구현한 라이브러리다. 그리고 `FlannBasedMatcher 클래스는 Flann 라이브러리를 이용하여 빠르게 매칭을 수행하는 클래스`다. 즉, FlannBasedMatcher 클래스는 근사화된 거리 계산 방법을 사용하므로 가장 거리가 작은 특징점을 찾지 못할 수 있지만, 매우 빠르게 동작한다. 다만 FlannBasedMatcher 클래스는 기본적으로 `L2 노름 거리 측정 방식을 사용`하므로 해밍 거리를 사용하는 이진 기술자에 대해서는 사용할 수 없다. (이진 기술자에 대해서도 지역성 의존 해싱(LSH, Locality Sensitive Hashing) 기법을 이용하여 FlannBasedMatcher 클래스를 사용할 수는 있지만 사용법이 까다로운 편이다.)
+
+BFMatcher::create() 함수의 첫 번째 인자 normType에는 두 기술자 사이의 거리를 측정하는 방식을 지정한다. SIFT, SURF, KAZE 알고리즘처럼 `실수 값으로 구성된 기술자를 사용하는 경우엔 보통 NORM_L2 또는 NORM_L1 상수를 지정`한다. ORB, BRIEF, AKAZE 알고리즘처럼 `이진 기술자를 사용하는 경우에는 normType에 NORM_HAMMING 플래그를 지정`해야 하며, 이 경우에는 두 이진 기술자 사이의 해밍 거리를 사용한다. 만약 ORB 기술자에서 WTA_K를 3 또는 4로 설정한 경우에는 normType을 NORM_HAMMING2로 지정해야 한다.
+
+BFMatcher 또는 FlannBasedmatcher 객체를 생성한 후에는 DescriptorMatcher::match()함수로 두 입력 영상에서 추출한 기술자 행렬 사이의 매칭을 수행할 수 있다. 함수 원형은 다음과 같다.
+```cpp
+void DescriptorMatcher::match(InputArray queryDescriptors, InputArray trainDescriptors, std::vector<DMatch>& matches, InputArray mask = noArray()) const;
+
+queryDescriptors  // 질의 기술자 집합
+trainDescriptors  // 훈련 기술자 집합
+matches           // 매칭 결과
+mask              /* 서로 매칭 가능한 질의 기술자와 훈련 기술자를 지정할 떄 사용한다. 행 개수는 질의 기술자 개수와 같아야하고, 열 개수                      는 훈련 기술자 개수와 같아야 한다. 만약 mask.at<uchar>(i,j) 값이 0이면 queryDescriptors[i]는
+                     trainDescriptors[j]로 매칭될 수 없다. noArray()를 지정하면 모든 가능한 매칭을 찾는다. */
+
+```
+
+1. DescriptorMatcher::`match() 함수는 queryDescriptors에 저장된 각각의 기술자에 대해 가장 유사한 기술자를 trainDescriptors에서 찾는다.`
+2. 각각의 매칭 결과(matches)에 대해 DMatch::queryIdx에는 queryDescriptors의 번호가 저장되고, DMatch::trainIdx에는 trainDescriptors의 번호가 저장된다. mask 인자를 특별히 지정하지 않는 경우, 매칭 결과가 저장되는 matches에는 queryDescriptors 기술자 개수와 같은 수의 DMatch 객체가 저장된다.
+
+DescriptorMatcher::knnMatch()    : 주어진 query 기술자에 대해 k개의 유사한 훈련 기술자를 찾아 반환
+DescriptorMatcher::radiusMatch() : 지정한 거리보다 작은 거리를 갖는 훈련 기술자를 모두 찾아 반환
+
+
+drawMatches() 함수는 두 매칭 입력 영상을 가로로 이어붙이고, 각 영상에서 추출한 특징점과 매칭 결과를 다양한 색상으로 표시한 결과 영상을 생성한다. drawMatches() 함수 원형은 다음과 같다.
+```cpp
+void drawMatches(InputArray img1, const std::vector<KeyPoint>& keypoints1,
+                 InputArray img2, const std::vector<KeyPoint>& keypoints2,
+                 const std::vector<DMatch>& matches1to2, InputOutputArray outImg, const Scalar& matchColor = Scalar::all(-1),
+                 const Scalar& singlePointColor = Scalar::all(-1), const std::vector<char>& matchesMask = std::vector<char>(),
+                 DrawMatchesFlags flags = DrawMatchesFlags::DEFAULT);
+                 
+img1              : 첫 번째 입력 영상
+keypoints1        : 첫 번째 입력 영상에서 검출된 특징점
+img2              : 두 번째 입력 영상
+keypoints2        : 두 번째 입력 영상에서 검출된 특징점
+matches1to2       : 첫 번째 입력 영상에서 두 번째 입력 영상으로의 매칭 정보
+outImg            : 출력 영상
+matchColor        : 매칭된 특징점과 직선 색상. 만약 Scalar::all(-1)을 지정하면 임의의 색상으로 그린다.
+singlePointColor  : 매칭되지 않은 특징점 색상. 만약 Scalar::all(-1)을 지정하면 임의의 색상으로 그린다.
+matchesMask       : 매칭 정보를 선택하여 그릴 때 사용할 마스크. 만약 std::vector<char>()를 지정하면 모든 매칭 결과를 그린다.
+flags             : 매칭 정보 그리기 방법. DrawMatchesFlags 열거형 상수를 지정한다.
+
+```
+
+1. drawMatches() 함수는 두 개의 입력 영상 img1과 img2를 서로 가로로 이어 붙이고, 두 영상 사이의 특징점 매칭 결과를 직선으로 그린 결과 영상 outimg를 반환한다.
+2. 두 입력 영상 사이의 매칭 정보는 matches1to2 인자로 전달한다.
+3. 매칭 결과를 그리는 방식은 flags 인자로 지정한다.
+
+- [키포인트 매칭 예제](https://github.com/Phw9/OpenCV/blob/master/LocalFeatureDetect/detect/keypoint_matching.cpp)
+
+위의 키포인트 매칭 예제에서 지역 특징점 매칭의 최종 목적은 book-in-scene.jpg 영상에서 book.jpg 영상이 있는 위치와 모양을 정확하게 알아내는 것이다. dst는 영상을 가로로 이어 붙인 영상 위에 특징점 매칭 결과를 다양한 색상의 직선으로 표시한 결과다. 하지만 book.jpg 영상에서 추출한 모든 특징점 기술자에 대해 가장 유사한 book-in-scene.jpg 영상에서 추출된 일부 특징점은 매칭이 되지 않아 직선이 연결되어 있지 않은 것을 확인할 수 있다. 이는 `영상 일부가 가려져 있거나 가려져 있지 않더라도 기하학적 변형과 조명 변화로 인하여 완벽한 매칭은 거의 불가능하며, 매칭 결과 중 상당수는 완전히 다른 특징점으로 잘못 매칭된다. 그러므로 전체 매칭 결과에서 잘못 매칭된 결과는 제외하고, 제대로 매칭되었다고 판단되는 결과만 선별하여 사용`해야 한다.
+
+DMatch 클래스는 기술자 사이의 거리를 표현하는 distance를 멤버 변수로 가지고 있다. 그러므로 distance 값이 너무 큰 매칭 결과는 무시하고 distance 값이 작은 결과만 사용하는 것이 좋다. `DMatch 클래스는 부등호 연산자에 대한 재정의가 되어 있고, 이 연산자 재정의에서는 distance 멤버 변수 크기를 비교하기 때문에 DMatch 객체를 std::sort() 함수로 정렬`하면 자동으로 distance 값을 기준으로 정렬된다.
+
+- [좋은 매칭 선별 예제](https://github.com/Phw9/OpenCV/blob/master/LocalFeatureDetect/detect/good_matching.cpp)
+
+
+
+#### 호모그래피와 영상 매칭
+
+특징점 매칭 결과로부터 두 영상의 호모그래피(homography)를 계산하고, 이를 이용하여 크기가 다르고 회전이 되어 있는 객체를 정확하게 매칭하는 방법에 대해 알아보자. `호모그래피는 3차원 공간상의 평면을 서로 다른 시점에서 바라봤을 때 획득되는 영상 사이의 관계`를 나타내는 용어다.
 
 
 
