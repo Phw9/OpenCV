@@ -35,4 +35,5 @@
 
 - [지역 특징점 검출과 매칭](https://github.com/Phw9/OpenCV/tree/master/LocalFeatureDetect)
   - [코너 검출 FAST,harris](https://github.com/Phw9/OpenCV/tree/master/LocalFeatureDetect/corner)
-  - [특징점 매칭]
+  - [특징점 매칭](https://github.com/Phw9/OpenCV/tree/master/LocalFeatureDetect/detect)
+  - [영상 이어 붙이기](https://github.com/Phw9/OpenCV/tree/master/Stitching)
