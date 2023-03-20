@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/phw93/dev/OpenCV/main.cpp
+opencv4/opencv2/opencv.hpp
+-
+vector
+-
+iostream
+-
+eigen3/Eigen/Core
+/home/phw93/dev/OpenCV/eigen3/Eigen/Core
+eigen3/Eigen/Dense
+/home/phw93/dev/OpenCV/eigen3/Eigen/Dense
+
