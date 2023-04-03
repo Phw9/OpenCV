@@ -32,8 +32,8 @@ void InverseSE3(cv::Mat& input, cv::Mat& output)
     cv::Mat trans = input(cv::Rect(3, 0, 1, 3)).clone();
     cv::Mat rot_inv = rot.inv();
     std::cout << "rot_inv: " << rot_inv << std::endl;
-    cv::Mat rt = -rot_inv*trans;
     rot_inv = rot_inv.t();
+    cv::Mat rt = -rot_inv*trans;
     cv::Mat temp;
     rt = rt.t();
     temp.push_back(rot);
@@ -51,15 +51,12 @@ void InverseSE3(cv::Mat& input, cv::Mat& output)
 
 int main()
 {
-    cv::Mat lidar2cam;
-    cv::Mat cam2lidar;
+    cv::Mat lidar2cam_m;
     cv::Mat imu2cam_m;
-    cv::Mat lidar2imu_m;
-    InverseSE3(imu2lidar, lidar2imu_m);
+    InverseSE3(cam2imu_m, imu2cam_m);
     std::cout << imu2cam << std::endl;
-    lidar2cam = lidar2imu_m*imu2cam;
-    cam2lidar = lidar2cam.inv();
-    std::cout << "lidar2cam: " << lidar2cam << std::endl;
-    std::cout << "cam2lidar: " << cam2lidar << std::endl;
+    lidar2cam = imu2lidar*imu2cam;
+    lidar2cam = lidar2cam.inv();
+    std::cout << lidar2cam << std::endl;
     return 0;
 }
